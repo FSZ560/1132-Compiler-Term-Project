@@ -1,0 +1,35 @@
+# Build files
+build/
+generated/
+
+# Compiled objects
+*.o
+*.obj
+*.exe
+
+# Flex/Bison generated files
+lex.yy.c
+*.tab.c
+*.tab.h
+*.output
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+temp*
+*.tmp
+
+# Log files
+*.log
+
+# Core dumps
+core
