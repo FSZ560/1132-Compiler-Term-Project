@@ -21,6 +21,7 @@
 <BRIDGE_MODE>"->"                { return ARROW; }
 <BRIDGE_MODE>";"                 { BEGIN(CPP_SECTION); return SEMICOLON; }
 <BRIDGE_MODE>[a-zA-Z_][a-zA-Z0-9_]* { yylval.str = strdup(yytext); return IDENTIFIER; }
+<BRIDGE_MODE>[0-9]+              { yylval.str = strdup(yytext); return INT_CONST; }
 <BRIDGE_MODE>[ \t\r\n]           { /* ignore */ }
 
 <PYTHON_SECTION>"</python_functions>" { BEGIN(INITIAL); return PY_END; }

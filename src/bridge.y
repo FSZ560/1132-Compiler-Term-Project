@@ -17,9 +17,9 @@ void generate_bridge_call(char* func, char* params, char* result);
     char* str;
 }
 
-%token <str> IDENTIFIER CPP_CODE PY_CODE
+%token <str> IDENTIFIER INT_CONST CPP_CODE PY_CODE
 %token CPP_START CPP_END PY_START PY_END BRIDGE_CALL ARROW LPAREN RPAREN COMMA SEMICOLON
-%type <str> param_list
+%type <str> param_list param_item
 
 %%
 
@@ -50,12 +50,16 @@ bridge_statement: BRIDGE_CALL LPAREN IDENTIFIER COMMA param_list RPAREN ARROW ID
 }
 ;
 
-param_list: IDENTIFIER { $$ = $1; }
-| param_list COMMA IDENTIFIER {
+param_list: param_item { $$ = $1; }
+| param_list COMMA param_item {
     $$ = (char*)malloc(strlen($1) + strlen($3) + 3);
     sprintf($$, "%s, %s", $1, $3);
 }
 ;
+
+param_item: IDENTIFIER { $$ = $1; }
+    | INT_CONST { $$ = $1; }
+    ;
 
 python_section: PY_START python_content PY_END ;
 python_content: /* empty */ | python_content PY_CODE {
@@ -95,15 +99,31 @@ void generate_bridge_call(char* func, char* params, char* result) {
         while (end > token && *end == ' ') *end-- = '\0';
         
         if (!first) strcat(param_str, " + \",\" + ");
-        strcat(param_str, "std::to_string(");
-        strcat(param_str, token);
-        strcat(param_str, ")");
+
+        int is_digit = 1;
+        for (char* p = token; *p; ++p) {
+            if (*p < '0' || *p > '9') {
+                is_digit = 0;
+                break;
+            }
+        }
+        if (is_digit)
+            strcat(param_str, "\"");
+        if (is_digit)
+            strcat(param_str, token);
+        if (is_digit)
+            strcat(param_str, "\"");
+        else {
+            strcat(param_str, "std::to_string(");
+            strcat(param_str, token);
+            strcat(param_str, ")");
+        }
         
         first = 0;
         token = strtok(NULL, ",");
     }
     
-    sprintf(code, "int %s = bridge_call(\"%s\", %s);\n    ", result, func, param_str);
+    sprintf(code, "std::string %s = bridge_call(\"%s\", %s);\n    ", result, func, param_str);
     append_cpp(code);
     free(param_copy);
 }

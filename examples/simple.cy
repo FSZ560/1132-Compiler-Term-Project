@@ -19,5 +19,5 @@ int main() {
 
 <python_functions>
 def add_numbers(x, y):
-    return x + y
+    return x * y
 </python_functions>

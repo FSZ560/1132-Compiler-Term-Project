@@ -30,7 +30,7 @@ $(BUILD_DIR)/bridge.tab.c $(BUILD_DIR)/bridge.tab.h: src/bridge.y
 	bison -d -o $(BUILD_DIR)/bridge.tab.c $<
 
 test: $(TARGET)
-	./$(TARGET) examples/simple.cy
+	./$(TARGET) examples/advanced.cy
 
 clean:
 	rm -f $(BUILD_DIR)/*

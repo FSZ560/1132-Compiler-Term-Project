@@ -3,11 +3,11 @@
 #include <string>
 #include <memory>
 
-int bridge_call(const std::string& func_name, const std::string& params) {
+std::string bridge_call(const std::string& func_name, const std::string& params) {
     std::string cmd = "python3 generated/temp.py " + func_name + " " + params;
     
     FILE* pipe = popen(cmd.c_str(), "r");
-    if (!pipe) return -1;
+    if (!pipe) return "";
     
     char buffer[128];
     std::string result;
@@ -16,5 +16,6 @@ int bridge_call(const std::string& func_name, const std::string& params) {
     }
     pclose(pipe);
     
-    return std::stoi(result);
+    return result;
 }
+
