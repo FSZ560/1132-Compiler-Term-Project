@@ -19,6 +19,7 @@ void generate_bridge_call(char* func, char* params, char* result);
 
 %token <str> IDENTIFIER INT_CONST CPP_CODE PY_CODE
 %token CPP_START CPP_END PY_START PY_END BRIDGE_CALL ARROW LPAREN RPAREN COMMA SEMICOLON
+%token <str> STRING_LITERAL
 %type <str> param_list param_item
 
 %%
@@ -32,7 +33,25 @@ program: sections {
     // Generate temp.py
     if (python_code) {
         f = fopen("generated/temp.py", "w");
-        fprintf(f, "import sys\n%s\nif __name__ == \"__main__\":\n    result = globals()[sys.argv[1]](*[int(p) for p in sys.argv[2].split(',')])\n    print(result)\n", python_code);
+        fprintf(f, "import sys\nimport ast\n%s\n", python_code);
+        fprintf(f,
+                "def parse_param(p):\n"
+                "    try:\n"
+                "        return int(p)\n"
+                "    except ValueError:\n"
+                "        try:\n"
+                "            return ast.literal_eval(p)\n"
+                "        except:\n"
+                "            return p\n"
+                "if __name__ == \"__main__\":\n"
+        	"    try:\n"
+       		"        result = globals()[sys.argv[1]](*[parse_param(p) for p in sys.argv[2].split(',')])\n"
+       		"        print(result)\n"
+        	"    except:\n"
+        	"        pass\n");
+                
+                
+                
         fclose(f);
     }
 }
@@ -58,8 +77,14 @@ param_list: param_item { $$ = $1; }
 ;
 
 param_item: IDENTIFIER { $$ = $1; }
-    | INT_CONST { $$ = $1; }
-    ;
+          | INT_CONST  { $$ = $1; }
+          | STRING_LITERAL { 
+              char* wrapped = (char*) malloc(strlen($1) + 3);
+              sprintf(wrapped, "\\\"%s\\\"", $1); 
+              $$ = wrapped;
+          }
+          ;
+
 
 python_section: PY_START python_content PY_END ;
 python_content: /* empty */ | python_content PY_CODE {
@@ -93,12 +118,26 @@ void generate_bridge_call(char* func, char* params, char* result) {
     int first = 1;
     
     while (token != NULL) {
-        // Trim whitespace
-        while (*token == ' ') token++;
-        char* end = token + strlen(token) - 1;
-        while (end > token && *end == ' ') *end-- = '\0';
-        
-        if (!first) strcat(param_str, " + \",\" + ");
+    // Trim whitespace
+    while (*token == ' ') token++;
+    char* end = token + strlen(token) - 1;
+    while (end > token && *end == ' ') *end-- = '\0';
+    
+    if (!first) strcat(param_str, " + \",\" + ");
+    
+    int is_string_literal = (token[0] == '\\' && token[1] == '"' &&
+                            token[strlen(token)-1] == '"' && token[strlen(token)-2] == '\\');
+    
+    if (is_string_literal) {
+
+        char* clean_str = (char*)malloc(strlen(token) + 1);
+        strcpy(clean_str, token + 2); 
+        clean_str[strlen(clean_str) - 2] = '\0';  
+        strcat(param_str, "\"");
+        strcat(param_str, clean_str);
+        strcat(param_str, "\"");
+        free(clean_str);
+    } else {
 
         int is_digit = 1;
         for (char* p = token; *p; ++p) {
@@ -107,23 +146,28 @@ void generate_bridge_call(char* func, char* params, char* result) {
                 break;
             }
         }
-        if (is_digit)
-            strcat(param_str, "\"");
-        if (is_digit)
-            strcat(param_str, token);
-        if (is_digit)
-            strcat(param_str, "\"");
-        else {
-            strcat(param_str, "std::to_string(");
-            strcat(param_str, token);
-            strcat(param_str, ")");
-        }
         
-        first = 0;
-        token = strtok(NULL, ",");
+        if (is_digit) {
+
+            strcat(param_str, "\"");
+            strcat(param_str, token);
+            strcat(param_str, "\"");
+        } else {
+            if (strstr(token, "message") != NULL || strstr(token, "str") != NULL) {
+                strcat(param_str, token);
+            } else {
+                strcat(param_str, "std::to_string(");
+                strcat(param_str, token);
+                strcat(param_str, ")");
+            }
+        }
     }
     
-    sprintf(code, "std::string %s = bridge_call(\"%s\", %s);\n    ", result, func, param_str);
+    first = 0;
+    token = strtok(NULL, ",");
+}
+    
+    sprintf(code, "std::string %s = bridge_call(\"%s\",%s);\n    ", result, func, param_str);
     append_cpp(code);
     free(param_copy);
 }

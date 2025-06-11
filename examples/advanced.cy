@@ -28,6 +28,9 @@ int main() {
     
     cout << "10th Fibonacci number: " << fib_result << endl;
     
+    string message = "hello world";
+    BRIDGE_CALL(shout, message) -> shouted_message;
+    cout << "Shouted message: " << shouted_message << endl;
     return 0;
 }
 </cpp_main>
@@ -52,4 +55,6 @@ def fibonacci(n):
     for _ in range(2, n + 1):
         a, b = b, a + b
     return b
+def shout(text):
+    return text.upper() + "!!!"
 </python_functions>
