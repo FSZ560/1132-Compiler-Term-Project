@@ -2,6 +2,14 @@
 
 使用 Flex 和 Bison 建立的 C++/Python bridge interpreter，實現 C++ 與 Python 程式碼的混合。透過自定義的 .cy 檔案格式，讓 C++ 程式能直接調用 Python 函數並取得回傳值，支援多種參數型別的自動轉換。
 
+## 環境需求
+
+- Linux 
+- g++ （C++11）
+- flex
+- bison
+- python3
+
 ## 使用指令
 
 ```bash
