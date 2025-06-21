@@ -1,6 +1,19 @@
 # C++ and Python Bridge Interpreter
 
-使用 Flex 和 Bison 建立的 C++/Python bridge interpreter
+使用 Flex 和 Bison 建立的 C++/Python bridge interpreter，實現 C++ 與 Python 程式碼的混合。透過自定義的 .cy 檔案格式，讓 C++ 程式能直接調用 Python 函數並取得回傳值，支援多種參數型別的自動轉換。
+
+## 使用指令
+
+```bash
+# 編譯
+make all
+
+# 測試
+make test
+
+# 清理產生的檔案
+make clean
+```
 
 ## 調用語法
 
@@ -43,15 +56,6 @@ example.cy → [Flex/Bison] → temp.cpp + temp.py
 temp.cpp → [g++] → executable → [調用] → [python3 temp.py] → 結果
 ```
 
-## 開發指令
+## 技術實現
 
-```bash
-# 編譯
-make all
-
-# 測試
-make test
-
-# 清理產生的檔案
-make clean
-```
+編譯器採用三階段處理：Flex 識別不同語言區塊，Bison 生成對應的 C++ 和 Python 程式碼，最後透過橋接介面使用 system() 調用執行 Python 函數。支援的參數型別包括整數、浮點數和字串，並具備自動型別推斷和轉換機制。
