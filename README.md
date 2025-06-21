@@ -8,8 +8,11 @@
 # 編譯
 make all
 
-# 測試
-make test
+# 執行測試（預設 simple.cy）
+make run
+
+# 執行指定檔案
+make run FILE=examples/advanced.cy
 
 # 清理產生的檔案
 make clean

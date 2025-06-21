@@ -29,8 +29,10 @@ $(BUILD_DIR)/lex.yy.c: src/bridge.l $(BUILD_DIR)/bridge.tab.h
 $(BUILD_DIR)/bridge.tab.c $(BUILD_DIR)/bridge.tab.h: src/bridge.y
 	bison -d -o $(BUILD_DIR)/bridge.tab.c $<
 
-test: $(TARGET)
-	./$(TARGET) examples/advanced.cy
+FILE ?= examples/simple.cy
+
+run: $(TARGET)
+	./$(TARGET) $(FILE)
 
 clean:
 	rm -f $(BUILD_DIR)/*
